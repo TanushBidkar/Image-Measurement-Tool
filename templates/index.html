@@ -25,12 +25,12 @@
         <!-- Upload Section -->
         <div class="upload-overlay" id="uploadOverlay">
             <div class="upload-modal">
-                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                <input type="file" id="imageInput" accept="image/*,.pdf" style="display: none;">
                 <div class="upload-content">
                     <span class="upload-icon">📎</span>
                     <h2>Upload Image</h2>
                     <p>Drag & drop files here or click to browse</p>
-                    <p><strong>Supported:</strong> JPG, PNG, WebP (Max 50MB)</p>
+                    <p><strong>Supported:</strong> JPG, PNG, WebP, PDF (Max 50MB)</p>
                     <button class="upload-btn">Choose File</button>
                 </div>
             </div>
@@ -56,7 +56,31 @@
                 <div class="panel-section">
                     <h3>🛠️ Tools</h3>
                     <button id="measureBtn" class="btn-primary">📏 Measure</button>
+                    <button id="toggleMeasurementsBtn" class="btn-success" data-hidden="false">👁️ Hide Measurements</button>
+                    <button id="toggleSnapBtn" class="btn-success">🧲 Snap: ON</button>
                     <button id="clearAllBtn" class="btn-danger">🗑️ Clear All</button>
+                    
+                    <!-- Snap Settings -->
+                    <div class="input-group" style="margin-top: 15px;">
+                        <label>Snap Radius: <span id="snapRadiusValue">15px</span></label>
+                        <input type="range" id="snapRadius" min="5" max="50" value="15" step="1" style="width: 100%;">
+                    </div>
+                </div>
+
+                <!-- Legend Detection Section -->
+                <div class="panel-section">
+                    <h3>🎨 Legend Detection</h3>
+                    <button id="autoDetectBtn" class="btn-primary">🔍 Auto-Detect Legends</button>
+                    <button id="viewLegendsBtn" class="btn-success">📊 View All Legends</button>
+                    <button id="viewByGroupBtn" class="btn-primary">📊 View by Group</button>
+                </div>
+
+                <!-- Legend Groups Display -->
+                <div class="panel-section">
+                    <h3>🎨 Legend Groups</h3>
+                    <div id="legendGroupsContainer">
+                        <p style="color:#95a5a6; font-style:italic; text-align:center;">No legends detected yet</p>
+                    </div>
                 </div>
 
                 <!-- Measurements List -->
@@ -64,6 +88,16 @@
                     <h3>📊 Measurements</h3>
                     <div class="measurements-container" id="measurementsList">
                         <p class="no-measurements">No measurements yet</p>
+                    </div>
+                    <div id="totalContainer"></div>
+                </div>
+
+                <!-- Undo/Redo Section -->
+                <div class="panel-section">
+                    <h3>↶ History</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="undoBtn" class="btn-primary" style="flex: 1;">↶ Undo</button>
+                        <button id="redoBtn" class="btn-primary" style="flex: 1;">↷ Redo</button>
                     </div>
                 </div>
             </div>
