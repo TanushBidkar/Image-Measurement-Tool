@@ -55,6 +55,20 @@ body {
     background: rgba(255,255,255,0.2);
     transform: translateY(-1px);
 }
+/* Undo/Redo button styling */
+#undoBtn, #redoBtn {
+    background: rgba(52, 152, 219, 0.2);
+    border: 1px solid rgba(52, 152, 219, 0.4);
+}
+
+#undoBtn:hover, #redoBtn:hover {
+    background: rgba(52, 152, 219, 0.3);
+}
+
+#undoBtn:active, #redoBtn:active {
+    background: rgba(41, 128, 185, 0.4);
+}
+
 
 #zoomLevel {
     color: #ecf0f1;
@@ -456,4 +470,91 @@ body {
         padding: 6px 12px;
         font-size: 0.8rem;
     }
+    .legend-group-item {
+    transition: transform 0.2s ease;
+}
+
+.legend-group-item:hover {
+    transform: translateX(5px);
+}
+
+.legends-modal {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.legend-selection-card {
+    transition: all 0.3s ease;
+}
+
+.legend-selection-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.legend-checkbox {
+    accent-color: #27ae60;
+}
+/* Compact measurement display */
+#toggleMeasurementsBtn {
+    transition: all 0.3s ease;
+}
+
+.measurement-item {
+    font-size: 0.9rem;
+    padding: 10px;
+}
+
+.measurement-value {
+    font-size: 1rem !important;
+}
+
+/* Improve canvas clarity */
+#imageCanvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+/* Snap controls */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: #ddd;
+    border-radius: 5px;
+    outline: none;
+    margin: 10px 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #27ae60;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    background: #2ecc71;
+    transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #27ae60;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+#snapRadiusValue {
+    font-weight: 600;
+    color: #27ae60;
+}
 }
