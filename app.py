@@ -173,15 +173,15 @@ def detect_legends():
         
         # Enhanced color ranges with more patterns
         color_ranges = {
-            'red': ([0, 100, 100], [10, 255, 255]),
-            'red2': ([170, 100, 100], [180, 255, 255]),  # Second red range
-            'green': ([35, 50, 50], [85, 255, 255]),
-            'blue': ([95, 50, 50], [135, 255, 255]),
-            'orange': ([8, 100, 100], [25, 255, 255]),
-            'pink': ([145, 50, 50], [175, 255, 255]),
-            'cyan': ([80, 50, 50], [100, 255, 255]),
-            'yellow': ([20, 100, 100], [35, 255, 255]),
-            'purple': ([125, 50, 50], [145, 255, 255])
+            'red': ([0, 100, 100], [10, 255, 255]),      # Lowered from 120 to 100
+            'red2': ([170, 100, 100], [180, 255, 255]),  # Lowered from 120 to 100
+            'green': ([35, 80, 80], [85, 255, 255]),     # Lowered from 100 to 80
+            'blue': ([95, 80, 80], [135, 255, 255]),     # Lowered from 100 to 80
+            'orange': ([8, 100, 100], [25, 255, 255]),   # Keep as is
+            'pink': ([145, 80, 80], [175, 255, 255]),    # Lowered from 50 to 80
+            'cyan': ([80, 80, 80], [100, 255, 255]),     # Increased from 50 to 80
+            'yellow': ([20, 100, 100], [35, 255, 255]),  # Keep as is
+            'purple': ([125, 80, 80], [145, 255, 255])   # Increased from 50 to 80
         }
         
         detected_legends = []
@@ -204,12 +204,22 @@ def detect_legends():
             
             for contour in contours:
                 area = cv2.contourArea(contour)
-                if area > 50:  # Lower threshold to detect more
+                if area > 200:  # INCREASED from 50 to 200
                     x, y, w, h = cv2.boundingRect(contour)
-                    
-                    # Skip very small or very large regions
-                    if w < 10 or h < 10 or w > img.shape[1]*0.8 or h > img.shape[0]*0.8:
+    
+                    # CHANGED: More strict size filtering
+                    # Legends are typically 15-100 pixels in architectural drawings
+                    if w < 8 or h < 8 or w > 300 or h > 300:
                         continue
+
+                    # ADDED: Aspect ratio check - legends are usually square or rectangular
+                    aspect_ratio = float(w) / h
+                    if aspect_ratio > 10 or aspect_ratio < 0.1:  # Skip very thin or very wide objects
+                        continue
+                    if not is_simple_legend_shape(contour):  
+                        continue 
+
+                    
                     
                     # Get extreme points
                     leftmost = tuple(contour[contour[:,:,0].argmin()][0])
@@ -327,6 +337,18 @@ def detect_pattern_type(img):
     else:
         return 'patterned'
 
+def is_simple_legend_shape(contour):
+    """Check if contour is simple enough to be a legend (not furniture/human)"""
+    epsilon = 0.04 * cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+    
+    # Legends typically have 4-8 vertices when simplified
+    # Furniture and humans have many more vertices
+    if len(approx) < 3 or len(approx) > 12:
+        return False
+    
+    return True
+
 # --- FIX: Move this function to the far left (Global Scope) ---
 def get_adaptive_mask(full_img_hsv, sample_region_hsv):
     """
@@ -407,15 +429,15 @@ def extract_unique_legends():
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         
         color_ranges = {
-            'red': ([0, 100, 100], [10, 255, 255]),
-            'red2': ([170, 100, 100], [180, 255, 255]),
-            'green': ([35, 50, 50], [85, 255, 255]),
-            'blue': ([95, 50, 50], [135, 255, 255]),
-            'orange': ([8, 100, 100], [25, 255, 255]),
-            'pink': ([145, 50, 50], [175, 255, 255]),
-            'cyan': ([80, 50, 50], [100, 255, 255]),
-            'yellow': ([20, 100, 100], [35, 255, 255]),
-            'purple': ([125, 50, 50], [145, 255, 255])
+            'red': ([0, 100, 100], [10, 255, 255]),      # Lowered from 120 to 100
+            'red2': ([170, 100, 100], [180, 255, 255]),  # Lowered from 120 to 100
+            'green': ([35, 80, 80], [85, 255, 255]),     # Lowered from 100 to 80
+            'blue': ([95, 80, 80], [135, 255, 255]),     # Lowered from 100 to 80
+            'orange': ([8, 100, 100], [25, 255, 255]),   # Keep as is
+            'pink': ([145, 80, 80], [175, 255, 255]),    # Lowered from 50 to 80
+            'cyan': ([80, 80, 80], [100, 255, 255]),     # Increased from 50 to 80
+            'yellow': ([20, 100, 100], [35, 255, 255]),  # Keep as is
+            'purple': ([125, 80, 80], [145, 255, 255])   # Increased from 50 to 80
         }
         
         all_legends = []
@@ -434,12 +456,23 @@ def extract_unique_legends():
             
             for contour in contours:
                 area = cv2.contourArea(contour)
-                if area > 50:
+                if area > 200:  # INCREASED from 50 to 200
                     x, y, w, h = cv2.boundingRect(contour)
-                    
-                    if w < 10 or h < 10 or w > img.shape[1]*0.8 or h > img.shape[0]*0.8:
+
+                    # CHANGED: More strict size filtering
+                    if w < 8 or h < 8 or w > 300 or h > 300:
                         continue
-                    
+
+                    # ADDED: Aspect ratio check
+                    aspect_ratio = float(w) / h
+                    if aspect_ratio > 10 or aspect_ratio < 0.1:
+                        continue
+
+                    # ADDED: Shape complexity check  <--- ADD THIS
+                    #if not is_simple_legend_shape(contour):  
+                     #   continue  
+
+                    # Get extreme points...
                     leftmost = tuple(contour[contour[:,:,0].argmin()][0])
                     rightmost = tuple(contour[contour[:,:,0].argmax()][0])
                     topmost = tuple(contour[contour[:,:,1].argmin()][0])
