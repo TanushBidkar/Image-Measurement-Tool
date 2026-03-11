@@ -1551,24 +1551,111 @@ processClickedLegends(legends, color, pattern) {
         return item;
     }
     
-    renderTotalControls() {
-        let totalContainer = document.getElementById('totalContainer');
-        if (!totalContainer) {
-            totalContainer = document.createElement('div');
-            totalContainer.id = 'totalContainer';
-            document.getElementById('measurementsList').after(totalContainer);
-        }
-        totalContainer.innerHTML = `
-            <button id="newGroupBtn" class="btn-primary" style="margin-bottom:10px;">New Group</button>
-            <span id="currentGroupNameDisplay" style="margin-left:10px;font-weight:600;"></span>
-            <input id="groupTotalInput" type="text" placeholder="Enter group name for total" style="margin-top:10px;width:60%;padding:6px;">
-            <button id="calcTotalBtn" class="btn-success" style="margin-top:10px;">Calculate Total</button>
-            <div id="totalResult"></div>
-        `;
-        document.getElementById('newGroupBtn').onclick = () => this.promptGroupName();
-        document.getElementById('calcTotalBtn').onclick = () => this.calculateTotalByGroup();
-        document.getElementById('currentGroupNameDisplay').textContent = this.currentGroupName ? `Current Group: ${this.currentGroupName}` : '';
+   renderTotalControls() {
+    let totalContainer = document.getElementById('totalContainer');
+    if (!totalContainer) {
+        totalContainer = document.createElement('div');
+        totalContainer.id = 'totalContainer';
+        document.getElementById('measurementsList').after(totalContainer);
     }
+    totalContainer.innerHTML = `
+        <button id="newGroupBtn" class="btn-primary" style="margin-bottom:10px;">New Group</button>
+        <span id="currentGroupNameDisplay" style="margin-left:10px;font-weight:600;"></span>
+        <input id="groupTotalInput" type="text" placeholder="Enter group name for total" style="margin-top:10px;width:60%;padding:6px;">
+        <button id="calcTotalBtn" class="btn-success" style="margin-top:10px;">Calculate Total</button>
+
+        <div style="margin-top:15px; padding:12px; background:#f0f4ff; border-radius:8px; border:1px solid #c0d0ff;">
+            <div style="font-weight:600; margin-bottom:8px; color:#2c3e50;">✖️ Multiply Measurements</div>
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+                <input id="multiplyGroupInput" type="text" placeholder="Enter group name" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+                <button id="loadGroupMeasurementsBtn" style="padding:6px 12px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">Load</button>
+            </div>
+            <div id="multiplyMeasurementsList" style="margin-bottom:8px;"></div>
+            <div id="multiplyFactorRow" style="display:none; margin-top:8px;">
+    <button id="multiplyTotalBtn" class="btn-primary" style="width:100%;">✖️ Multiply Selected</button>
+</div>
+        </div>
+
+        <div id="totalResult"></div>
+    `;
+
+    document.getElementById('newGroupBtn').onclick = () => this.promptGroupName();
+    document.getElementById('calcTotalBtn').onclick = () => this.calculateTotalByGroup();
+    document.getElementById('currentGroupNameDisplay').textContent = this.currentGroupName ? `Current Group: ${this.currentGroupName}` : '';
+
+    // Load measurements for entered group name
+    document.getElementById('loadGroupMeasurementsBtn').onclick = () => {
+        const groupName = document.getElementById('multiplyGroupInput').value.trim();
+        if (!groupName) { alert('Enter a group name first.'); return; }
+
+        const groupMeasurements = this.measurements.filter(m => m.group === groupName);
+        const listDiv = document.getElementById('multiplyMeasurementsList');
+
+        if (groupMeasurements.length === 0) {
+            listDiv.innerHTML = `<div style="color:#e74c3c; font-size:0.9rem;">No measurements found for group "${groupName}"</div>`;
+            document.getElementById('multiplyFactorRow').style.display = 'none';
+            return;
+        }
+
+        let html = `<div style="font-size:0.85rem; color:#555; margin-bottom:6px;">Select measurements to multiply:</div>`;
+        html += `<div style="max-height:180px; overflow-y:auto; border:1px solid #ddd; border-radius:6px; background:white; padding:6px;">`;
+
+        groupMeasurements.forEach((m, idx) => {
+            html += `
+                <label style="display:flex; align-items:center; gap:8px; padding:6px 4px; border-bottom:1px solid #f0f0f0; cursor:pointer;">
+                    <input type="checkbox" class="multiply-check" data-id="${m.id}" data-value="${m.realDistance}" 
+                           style="width:16px; height:16px; cursor:pointer;" checked>
+                    <span style="flex:1; font-size:0.88rem;">${m.name || `Measurement ${idx + 1}`}</span>
+                    <span style="font-weight:700; color:#27ae60; min-width:55px; text-align:right;">${m.realDistance.toFixed(2)} ft</span>
+                </label>
+            `;
+        });
+
+        html += `</div>`;
+        html += `
+            <div style="display:flex; justify-content:space-between; margin-top:6px;">
+                <button id="selectAllMultiply" style="padding:4px 10px; font-size:0.8rem; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">Select All</button>
+                <button id="deselectAllMultiply" style="padding:4px 10px; font-size:0.8rem; background:#95a5a6; color:white; border:none; border-radius:4px; cursor:pointer;">Deselect All</button>
+            </div>
+        `;
+
+        listDiv.innerHTML = html;
+        document.getElementById('multiplyFactorRow').style.display = 'block';
+
+        document.getElementById('selectAllMultiply').onclick = () => {
+            document.querySelectorAll('.multiply-check').forEach(cb => cb.checked = true);
+        };
+        document.getElementById('deselectAllMultiply').onclick = () => {
+            document.querySelectorAll('.multiply-check').forEach(cb => cb.checked = false);
+        };
+    };
+
+    // Multiply selected measurements
+    document.getElementById('multiplyTotalBtn').onclick = () => {
+    const selected = document.querySelectorAll('.multiply-check:checked');
+    if (selected.length === 0) { alert('Select at least one measurement.'); return; }
+
+    let result = 1;
+    let rows = '';
+    selected.forEach(cb => {
+        const val = parseFloat(cb.dataset.value);
+        const label = cb.closest('label').querySelector('span:first-of-type').textContent;
+        result *= val;
+        rows += `<div style="font-size:0.82rem; color:#555; margin-bottom:2px;">• ${label}: ${val.toFixed(2)} ft</div>`;
+    });
+
+    document.getElementById('totalResult').innerHTML = `
+        <div style="margin-top:10px; padding:12px; background:#d4edda; border-radius:8px; border:1px solid #27ae60;">
+            <div style="font-weight:600; margin-bottom:6px; color:#2c3e50;">Result</div>
+            ${rows}
+            <div style="border-top:1px solid #aed6b8; margin:8px 0;"></div>
+            <div style="font-size:1.4rem; font-weight:700; color:#27ae60; margin-top:5px;">= ${result.toFixed(2)} ft</div>
+            <button onclick="document.getElementById('totalResult').innerHTML=''" 
+                    style="margin-top:8px; padding:4px 12px; background:#e74c3c; color:white; border:none; border-radius:4px; cursor:pointer;">Clear</button>
+        </div>
+    `;
+};
+}
     
     calculateTotalByGroup() {
         const groupName = document.getElementById('groupTotalInput').value.trim();
